@@ -39,6 +39,7 @@ function banonprofile_deactivate()
 
 function banonprofile()
 {
+	global $parser;
 	global $mybb,$db,$memprofile,$banreason;
 	
 	$usergroup = $db->fetch_array($db->simple_select("usergroups","*","gid='{$memprofile['usergroup']}'"));
@@ -59,7 +60,23 @@ function banonprofile()
 		{
 			$ban['reason'] = "(None specified)";
 		}
-		
+
+		if($ban['reason'])
+		{
+			if(!($parser instanceof postParser))
+			{
+				require_once MYBB_ROOT."inc/class_parser.php";
+
+				$parser = new postParser;
+			}
+
+			$ban['reason'] = htmlspecialchars_uni($parser->parse_badwords($ban['reason']));
+		}
+		else
+		{
+			$ban['reason'] = $lang->na;
+		}
+
 		$banreason = "<div class=\"red_alert\" style=\"text-align:center;\">The user {$memprofile['username']} is banned {$lifted} for the following reason: {$ban['reason']}</div>";
 	} else {
 		$banreason = '';
